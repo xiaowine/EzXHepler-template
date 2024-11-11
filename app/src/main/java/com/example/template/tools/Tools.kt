@@ -20,23 +20,17 @@
  * <https://github.com/577fkj/StatusBarLyric/blob/main/LICENSE>.
  */
 
-package com.example.template
+package com.example.template.tools
 
 import android.annotation.SuppressLint
-import android.content.ClipData
-import android.content.ClipboardManager
+import android.app.Application
 import android.content.Context
-import android.content.SharedPreferences
 import android.content.res.Configuration
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.TypedValue
-import android.view.View
-import android.widget.LinearLayout
-import android.widget.TextView
-import com.github.kyuubiran.ezxhelper.EzXHelper
-import de.robv.android.xposed.XSharedPreferences
+import com.github.kyuubiran.ezxhelper.HookFactory.`-Static`.createHook
+import com.github.kyuubiran.ezxhelper.finders.MethodFinder.`-Static`.methodFinder
 import java.io.DataOutputStream
 import java.util.Objects
 import java.util.regex.Pattern
@@ -46,31 +40,19 @@ import kotlin.properties.ReadWriteProperty
 @SuppressLint("StaticFieldLeak")
 object Tools {
 
-    private var index: Int = 0
-
-    val isMiui by lazy { isPresent("android.provider.MiuiSettings") }
-
-    val isPad by lazy { getSystemProperties("ro.build.characteristics") == "tablet" }
-
-    val isHyperOS by lazy {
-        try {
-            getSystemProperties("ro.mi.os.version.incremental")
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
-        } catch (_: Exception) {
-            false
+    fun getApplication(callback: (Application) -> Unit) {
+        var isLoad = false
+        Application::class.java.methodFinder().filterByName("attach").first().createHook {
+            after {
+                if (isLoad) return@after
+                isLoad = true
+                callback(it.thisObject as Application)
+            }
         }
     }
 
     fun dp2px(context: Context, dpValue: Float): Int = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dpValue, context.resources.displayMetrics).toInt()
 
-    val togglePrompts: Boolean
-        get() {
-            arrayOf("com.lge.adaptive.JavaImageUtil").forEach {
-                if (isPresent(it)) return true
-                if (isMiui) return true
-            }
-            return false
-        }
 
     private fun isPresent(name: String): Boolean {
         return try {
@@ -93,11 +75,6 @@ object Tools {
         return ret
     }
 
-    fun copyToClipboard(context: Context, text: String) {
-        val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        val clipData = ClipData.newPlainText("text", text)
-        clipboardManager.setPrimaryClip(clipData)
-    }
 
     fun <T> observableChange(
         initialValue: T, onChange: (oldValue: T, newValue: T) -> Unit

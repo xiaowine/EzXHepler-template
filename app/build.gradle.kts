@@ -39,5 +39,6 @@ android {
 
 dependencies {
     implementation("com.github.kyuubiran:EzXHelper:2.2.0")
+    implementation("com.android.support.constraint:constraint-layout:2.0.4")
     compileOnly("de.robv.android.xposed:api:82")
 }

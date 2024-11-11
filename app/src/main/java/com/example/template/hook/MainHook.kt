@@ -1,5 +1,6 @@
 package com.example.template.hook
 
+import com.example.template.LogTools
 import com.example.template.hook.apps.ExampleHook
 import com.github.kyuubiran.ezxhelper.EzXHelper
 import com.github.kyuubiran.ezxhelper.Log
@@ -13,6 +14,7 @@ private const val TAG = "xposed-template"
 
 class MainHook : IXposedHookLoadPackage, IXposedHookZygoteInit /* Optional */ {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
+        LogTools.init(true)
         if (lpparam.packageName == PACKAGE_NAME_HOOKED) {
             // Init EzXHelper
             EzXHelper.initHandleLoadPackage(lpparam)
